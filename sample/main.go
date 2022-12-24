@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/writeas/go-ghost"
-	"github.com/writeas/go-ghost/admin"
 	"os"
+
+	"github.com/csg33k/ghost-api"
+	"github.com/csg33k/ghost-api/admin"
 )
 
 func main() {
@@ -19,7 +20,7 @@ func main() {
 	c := ghost.NewClient(url, apiKey)
 	err := admin.AddPost(c, ghost.PostParams{
 		Title:    ghost.String("Posting via Go"),
-		Markdown: ghost.String(`This is a **test post** made with the [go-ghost](https://github.com/writeas/go-ghost) library.`),
+		Markdown: ghost.String(`This is a **test post** made with the [go-ghost](https://github.com/csg33k/ghost-api) library.`),
 		Status:   ghost.String("published"),
 	})
 	if err != nil {

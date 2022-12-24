@@ -2,9 +2,10 @@ package admin
 
 import (
 	"encoding/json"
-	"github.com/writeas/go-ghost"
-	"github.com/writeas/go-mobiledoc"
 	"net/http"
+
+	"github.com/csg33k/ghost-api"
+	"github.com/writeas/go-mobiledoc"
 )
 
 func AddPost(gc *ghost.Client, p ghost.PostParams) error {

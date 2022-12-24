@@ -5,19 +5,20 @@ import (
 	"bytes"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/gbrlsnchs/jwt/v3"
-	"github.com/mitchellh/mapstructure"
 	"io"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/golang-jwt/jwt"
+	"github.com/mitchellh/mapstructure"
 )
 
 type Client struct {
 	URL       string
 	Key       string
-	Version   string
 	GhostPath string
 	UserAgent string
 	client    *http.Client
@@ -32,7 +33,6 @@ func NewClient(url, key string) *Client {
 	return &Client{
 		URL:       url,
 		Key:       key,
-		Version:   "v2",
 		GhostPath: "ghost",
 		client:    httpClient,
 	}
@@ -93,34 +93,33 @@ func (c *Client) doRequest(r *http.Request) (map[string][]interface{}, error) {
 	return env, nil
 }
 
-func (c *Client) prepareRequest(r *http.Request) {
-	ua := c.UserAgent
-	if ua == "" {
-		ua = "go-ghost v1"
-	}
-	r.Header.Add("User-Agent", ua)
+func (c *Client) prepareRequest(r *http.Request) error {
+	// r.Header.Add("User-Agent", ua)
+	var err error
+	var token string
 	r.Header.Add("Content-Type", "application/json")
 	if c.Key != "" {
-		token, err := c.generateJWT()
+		token, err = c.generateJWT()
 		if err == nil {
 			// TODO: return error
 			r.Header.Add("Authorization", "Ghost "+token)
 		}
 	}
+	return err
 }
 
 func (c *Client) endpointForID(api, resource, id string) string {
-	return fmt.Sprintf("/%s/api/%s/%s/%s/%s/", c.GhostPath, c.Version, api, resource, id)
+	return fmt.Sprintf("/%s/api/%s/%s/%s/", c.GhostPath, api, resource, id)
 }
 
 func (c *Client) endpointForSlug(api, resource, slug string) string {
-	return fmt.Sprintf("/%s/api/%s/%s/%s/slug/%s/", c.GhostPath, c.Version, api, resource, slug)
+	return fmt.Sprintf("/%s/api/%s/%s/slug/%s/", c.GhostPath, api, resource, slug)
 }
 
 func (c *Client) generateJWT() (string, error) {
 	keyParts := strings.Split(c.Key, ":")
 	if len(keyParts) != 2 {
-		return "", fmt.Errorf("Invalid Client.Key format")
+		return "", fmt.Errorf("invalid Client.Key format")
 	}
 	id := keyParts[0]
 	rawSecret := []byte(keyParts[1])
@@ -131,18 +130,18 @@ func (c *Client) generateJWT() (string, error) {
 	}
 
 	now := time.Now()
-	hs256 := jwt.NewHMAC(jwt.SHA256, secret)
-	h := jwt.Header{KeyID: id}
-	p := jwt.Payload{
-		Audience:       jwt.Audience{"/" + c.Version + "/admin/"},
-		ExpirationTime: now.Add(5 * time.Minute).Unix(),
-		IssuedAt:       now.Unix(),
-	}
-	token, err := jwt.Sign(h, p, hs256)
+	token := jwt.New(jwt.SigningMethodHS256)
+	token.Header["kid"] = id
+	secret, err = hex.DecodeString(string(rawSecret))
 	if err != nil {
-		return "", err
+		return "", errors.New("unable to decode secret")
 	}
-	return string(token), nil
+	claim := token.Claims.(jwt.MapClaims)
+	claim["aud"] = "/admin/"
+	claim["exp"] = now.Add(5 * time.Minute).Unix()
+	claim["iat"] = now.Unix()
+
+	return token.SignedString(secret)
 }
 
 // String returns a pointer to the string value passed in.
