@@ -1,8 +1,6 @@
-package ghost
+package models
 
-import (
-	"time"
-)
+import "time"
 
 type Tag struct {
 	ID              *string   `json:"id"`

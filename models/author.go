@@ -1,4 +1,4 @@
-package ghost
+package models
 
 type Author struct {
 	ID              *string `json:"id"`

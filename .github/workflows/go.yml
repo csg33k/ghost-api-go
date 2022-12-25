@@ -1,0 +1,48 @@
+name: Go
+
+on:
+  push:
+    branches:
+      - master
+      - alpha
+  pull_request:
+
+env:
+  INTEGRATION: 0
+
+jobs:
+
+  lint:
+    strategy:
+      matrix:
+        go: [ 1.18, 1.19]
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Run linters
+        uses: golangci/golangci-lint-action@v3.1.0
+        with:
+          version: v1.50.1
+#         args: -D unused
+
+  test:
+    strategy:
+      matrix:
+        go: [ 1.18, 1.19 ]
+
+    runs-on: ubuntu-latest
+    steps:
+
+      - uses: actions/checkout@v3
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Test
+        run: go test -v ./...
+
