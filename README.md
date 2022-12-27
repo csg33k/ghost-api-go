@@ -19,11 +19,11 @@ Create a post:
 ```go
 import (
 	"github.com/csg33k/ghost-api"
-	"github.com/csg33k/ghost-api/admin"
+	"github.com/csg33k/ghost-api/ghost_api"
 )
 
 func main() {
-	// NewClient takes your Ghost URL and admin API key
+	// NewClient takes your Ghost URL and ghost_api API key
 	c := ghost.NewClient("http://localhost:2368", "fc765549cb7e9d05d5ecf2c9:d3e6d27fcf782ceebea59024010aec...")
 	err := admin.AddPost(c, ghost.PostParams{
 		Title:    ghost.String("My Post Title"),

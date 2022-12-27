@@ -1,0 +1,22 @@
+version: '3.8'
+services:
+  ghost:
+    image: ghost:5.26
+    restart: always
+    env_file: environment_file.env
+    ports:
+      - 2368:2368
+  mail:
+    image: mailhog/mailhog:v1.0.1
+    container_name: mail
+    env_file: environment_file.env
+    ports:
+      - 8025:8025
+  db:
+    image: mysql:8.0.31
+    env_file: environment_file.env
+    restart: always
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+    ports:
+      - '3306:3306'

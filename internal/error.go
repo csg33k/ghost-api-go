@@ -1,4 +1,4 @@
-package ghost
+package internal
 
 type Error struct {
 	ID      *string `json:"id"`
