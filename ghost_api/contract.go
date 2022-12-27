@@ -18,6 +18,7 @@ type Contract interface {
 	ListPosts(Scope, map[string]string) ([]models.Post, error)
 	AddPost(p models.PostParams) error
 	AddPosts(p []models.PostParams) error
+	GetPostById(Scope, string) (*models.Post, error)
 }
 
 type GhostClient struct {

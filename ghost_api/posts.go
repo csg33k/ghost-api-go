@@ -47,7 +47,7 @@ func (s *GhostClient) AddPost(p models.PostParams) error {
 	return s.AddPosts([]models.PostParams{p})
 }
 
-func (s *GhostClient) ListPosts(scope Scope, m map[string]string) ([]models.Post, error) {
+func (s *GhostClient) validateScope(scope Scope) (providers.APIProvider, error) {
 	var provider providers.APIProvider
 	switch scope {
 	case AdminScope:
@@ -55,13 +55,20 @@ func (s *GhostClient) ListPosts(scope Scope, m map[string]string) ([]models.Post
 	case ContentScope:
 		provider = s.contentApiProvider
 	default:
-		panic("invalid scope")
+		return nil, errors.New("invalid scope")
+	}
 
+	return provider, nil
+}
+
+func (s *GhostClient) ListPosts(scope Scope, m map[string]string) ([]models.Post, error) {
+	provider, err := s.validateScope(scope)
+	if err != nil {
+		return nil, err
 	}
 
 	var all *models.PostListing
 	v := new(models.PostListing)
-	var err error
 	for {
 		if v.GetCurrentPage() != 0 && v.GetPageCount() == v.GetCurrentPage() {
 			break
@@ -98,4 +105,28 @@ func (s *GhostClient) ListPosts(scope Scope, m map[string]string) ([]models.Post
 
 	return all.Posts, nil
 
+}
+
+func (s *GhostClient) GetPostById(scope Scope, id string) (*models.Post, error) {
+	provider, err := s.validateScope(scope)
+	if err != nil {
+		return nil, err
+	}
+
+	v := new(models.PostListing)
+	bldr := requests.
+		URL(provider.GetProviderURL()).
+		Pathf(rest.EndpointForID(string(scope), "posts", id)).
+		Method(http.MethodGet).
+		ToJSON(v)
+
+	s.UpdateRequest(provider, bldr, nil)
+	err = bldr.Fetch(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	if len(v.Posts) == 0 {
+		return nil, errors.New("Post was not found")
+	}
+	return &v.Posts[0], nil
 }

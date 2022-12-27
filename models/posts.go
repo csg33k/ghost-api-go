@@ -62,9 +62,22 @@ type Meta struct {
 	Pagination *Pagination `json:"pagination"`
 }
 
+type Error struct {
+	Message        string      `json:"message"`
+	Context        string      `json:"context"`
+	Type           string      `json:"type"`
+	Details        interface{} `json:"details"`
+	Property       interface{} `json:"property"`
+	Help           interface{} `json:"help"`
+	Code           interface{} `json:"code"`
+	ID             string      `json:"id"`
+	GhostErrorCode interface{} `json:"ghostErrorCode"`
+}
+
 type PostListing struct {
-	Posts []Post `json:"posts"`
-	Meta  *Meta  `json:"meta"`
+	Posts  []Post  `json:"posts"`
+	Meta   *Meta   `json:"meta"`
+	Errors []Error `json:"errors"`
 }
 
 func (s *PostListing) GetNextPage() int {

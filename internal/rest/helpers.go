@@ -7,7 +7,7 @@ const (
 )
 
 func EndpointForID(api, resource, id string) string {
-	return fmt.Sprintf("/%s/api/%s/%s/%s/", prefix, api, resource, id)
+	return fmt.Sprintf("/%s/api/%s/%s/%s", prefix, api, resource, id)
 }
 
 func EndpointForSlug(api, resource, slug string) string {
